@@ -1,0 +1,229 @@
+(function () {
+    var canvas = $('#canvas');
+
+    if (!canvas[0].getContext) {
+        $("#error").show();
+        return false;
+    }
+
+    var width = canvas.width();
+    var height = canvas.height();
+
+    canvas.attr("width", width);
+    canvas.attr("height", height);
+
+    var opts = {
+        seed: {
+            x: width / 2 - 20,
+            color: "rgb(190, 26, 37)",
+            scale: 2
+        },
+        branch: [
+            [535, 680, 570, 250, 500, 200, 30, 100, [
+                [540, 500, 455, 417, 340, 400, 13, 100, [
+                    [450, 435, 434, 430, 394, 395, 2, 40]
+                ]],
+                [550, 445, 600, 356, 680, 345, 12, 100, [
+                    [578, 400, 648, 409, 661, 426, 3, 80]
+                ]],
+                [539, 281, 537, 248, 534, 217, 3, 40],
+                [546, 397, 413, 247, 328, 244, 9, 80, [
+                    [427, 286, 383, 253, 371, 205, 2, 40],
+                    [498, 345, 435, 315, 395, 330, 4, 60]
+                ]],
+                [546, 357, 608, 252, 678, 221, 6, 100, [
+                    [590, 293, 646, 277, 648, 271, 2, 80]
+                ]]
+            ]]
+        ],
+        bloom: {
+            num: 700,
+            width: 1080,
+            height: 650,
+        },
+        footer: {
+            width: 1200,
+            height: 5,
+            speed: 10,
+        }
+    }
+
+    var tree = new Tree(canvas[0], width, height, opts);
+    var seed = tree.seed;
+    var foot = tree.footer;
+    var hold = 1;
+
+    canvas.click(function (e) {
+        var offset = canvas.offset(), x, y;
+        x = e.pageX - offset.left;
+        y = e.pageY - offset.top;
+        if (seed.hover(x, y)) {
+            hold = 0;
+            canvas.unbind("click");
+            canvas.unbind("mousemove");
+            canvas.removeClass('hand');
+        }
+    }).mousemove(function (e) {
+        var offset = canvas.offset(), x, y;
+        x = e.pageX - offset.left;
+        y = e.pageY - offset.top;
+        canvas.toggleClass('hand', seed.hover(x, y));
+    });
+
+    var seedAnimate = eval(Jscex.compile("async", function () {
+        seed.draw();
+        while (hold) {
+            $await(Jscex.Async.sleep(10));
+        }
+        while (seed.canScale()) {
+            seed.scale(0.95);
+            $await(Jscex.Async.sleep(10));
+        }
+        while (seed.canMove()) {
+            seed.move(0, 2);
+            foot.draw();
+            $await(Jscex.Async.sleep(10));
+        }
+    }));
+
+    var growAnimate = eval(Jscex.compile("async", function () {
+        do {
+            tree.grow();
+            $await(Jscex.Async.sleep(10));
+        } while (tree.canGrow());
+    }));
+
+    var flowAnimate = eval(Jscex.compile("async", function () {
+        do {
+            tree.flower(2);
+            $await(Jscex.Async.sleep(10));
+        } while (tree.canFlower());
+    }));
+
+    var moveAnimate = eval(Jscex.compile("async", function () {
+        tree.snapshot("p1", 240, 0, 610, 680);
+        while (tree.move("p1", 500, 0)) {
+            foot.draw();
+            $await(Jscex.Async.sleep(10));
+        }
+        foot.draw();
+        tree.snapshot("p2", 500, 0, 610, 680);
+
+        canvas.parent().css("background", "url(" + tree.toDataURL('image/png') + ")");
+        canvas.css("background", "#F5E8DC");
+        $await(Jscex.Async.sleep(300));
+        canvas.css("background", "none");
+    }));
+
+    var jumpAnimate = eval(Jscex.compile("async", function () {
+        var ctx = tree.ctx;
+        while (true) {
+            tree.ctx.clearRect(0, 0, width, height);
+            tree.jump();
+            foot.draw();
+            $await(Jscex.Async.sleep(25));
+        }
+    }));
+
+    var textAnimate = eval(Jscex.compile("async", function () {
+        var together = new Date();
+        together.setFullYear(2023, 6, 9);
+        together.setHours(0);
+        together.setMinutes(0);
+        together.setSeconds(0);
+        together.setMilliseconds(0);
+
+        $("#code").show().typewriter();
+        $("#clock-box").fadeIn(500);
+        while (true) {
+            timeElapse(together);
+            $await(Jscex.Async.sleep(1000));
+        }
+    }));
+
+    var runAsync = eval(Jscex.compile("async", function () {
+        $await(seedAnimate());
+        $await(growAnimate());
+        $await(flowAnimate());
+        $await(moveAnimate());
+
+        textAnimate().start();
+
+        $await(jumpAnimate());
+    }));
+
+    runAsync().start();
+})();
+
+window.addEventListener("load", () => {
+    const music = document.getElementById("bg-music");
+    const btn = document.getElementById("music-btn");
+
+    // Volumen inicial
+    music.volume = 0.25;
+
+    // Intentar autoplay
+    const playPromise = music.play();
+    if (playPromise !== undefined) {
+        playPromise.catch(() => {
+            // Autoplay bloqueado, se activará con el botón
+        });
+    }
+
+    // Botón play / pause
+    btn.addEventListener("click", () => {
+        if (music.paused) {
+            music.play();
+            btn.textContent = "🔊 Música";
+        } else {
+            music.pause();
+            btn.textContent = "🔇 Música";
+        }
+    });
+});
+
+window.addEventListener("load", () => {
+    const openBtn = document.getElementById("open-letter");
+    const overlay = document.getElementById("letter-overlay");
+    const closeBtn = document.getElementById("close-letter");
+    const card = overlay.querySelector(".letter-card");
+
+    function openLetter() {
+        overlay.classList.add("show");
+        overlay.setAttribute("aria-hidden", "false");
+        // foco al botón cerrar por accesibilidad
+        closeBtn.focus();
+    }
+
+    function closeLetter() {
+        overlay.classList.remove("show");
+        overlay.setAttribute("aria-hidden", "true");
+        openBtn.focus();
+    }
+
+    // Mostrar el botón cuando termina el typewriter (si aplicaste el paso 3)
+    document.addEventListener("typewriter:done", () => {
+        openBtn.style.display = "inline-block";
+    });
+
+    // Si NO quieres tocar functions.js, descomenta esta línea para mostrarlo siempre:
+    // openBtn.style.display = "inline-block";
+
+    openBtn.addEventListener("click", openLetter);
+    closeBtn.addEventListener("click", closeLetter);
+
+    // Cerrar al hacer click fuera de la carta
+    overlay.addEventListener("click", (e) => {
+        if (e.target === overlay) closeLetter();
+    });
+
+    // Evitar que clicks dentro cierren
+    card.addEventListener("click", (e) => e.stopPropagation());
+
+    // Cerrar con ESC
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && overlay.classList.contains("show")) {
+            closeLetter();
+        }
+    });
+});
