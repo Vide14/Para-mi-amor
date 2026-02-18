@@ -10,25 +10,31 @@ $(window).resize(function () {
     }
 });
 
-(function ($) {
+function ($) {
     $.fn.typewriter = function () {
         this.each(function () {
             var $ele = $(this), str = $ele.html(), progress = 0;
             $ele.html('');
-            var timer = setInterval(function () {
-                var current = str.substr(progress, 1);
-                if (current == '<') {
-                    progress = str.indexOf('>', progress) + 1;
-                } else {
-                    progress++;
-                }
-                $ele.html(str.substring(0, progress) + (progress & 1 ? '_' : ''));
-                if (progress >= str.length) {
-                    clearInterval(timer);
-                     element.html(str);
-                    document.dispatchEvent(new Event("typewriter:done"));
-                }
-            }, 75);
+        var timer = setInterval(function () {
+         var current = str.substr(progress, 1);
+
+        if (current == '<') {
+        progress = str.indexOf('>', progress) + 1;
+         } else {
+        progress++;
+        }
+
+    // Si ya terminó, deja TODO el HTML final (incluye "Te amo") y quita cursor
+        if (progress >= str.length) {
+         clearInterval(timer);
+        $ele.html(str);
+        document.dispatchEvent(new Event("typewriter:done"));
+        return;
+    }
+
+    // Mientras escribe: muestra cursor SIN saltar de línea
+    $ele.html(str.substring(0, progress) + '<span class="tw-cursor">_</span>');
+}, 75);
         });
         return this;
     };
