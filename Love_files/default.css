@@ -202,12 +202,3 @@ a {
     transform: rotate(-3deg);
 }
 
-@media (max-height: 800px) {
-  #wrap { transform: scale(0.9); transform-origin: top center; }
-}
-@media (max-height: 720px) {
-  #wrap { transform: scale(0.8); transform-origin: top center; }
-}
-@media (max-height: 640px) {
-  #wrap { transform: scale(0.7); transform-origin: top center; }
-}
