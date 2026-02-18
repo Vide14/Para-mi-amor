@@ -53,22 +53,28 @@
     var foot = tree.footer;
     var hold = 1;
 
-    canvas.click(function (e) {
-        var offset = canvas.offset(), x, y;
-        x = e.pageX - offset.left;
-        y = e.pageY - offset.top;
-        if (seed.hover(x, y)) {
-            hold = 0;
-            canvas.unbind("click");
-            canvas.unbind("mousemove");
-            canvas.removeClass('hand');
-        }
-    }).mousemove(function (e) {
-        var offset = canvas.offset(), x, y;
-        x = e.pageX - offset.left;
-        y = e.pageY - offset.top;
-        canvas.toggleClass('hand', seed.hover(x, y));
-    });
+  canvas.click(function (e) {
+
+    var rect = canvas[0].getBoundingClientRect();
+    var x = (e.clientX - rect.left) * (canvas[0].width / rect.width);
+    var y = (e.clientY - rect.top)  * (canvas[0].height / rect.height);
+
+    if (seed.hover(x, y)) {
+        hold = 0;
+        canvas.unbind("click");
+        canvas.unbind("mousemove");
+        canvas.removeClass('hand');
+    }
+
+}).mousemove(function (e) {
+
+    var rect = canvas[0].getBoundingClientRect();
+    var x = (e.clientX - rect.left) * (canvas[0].width / rect.width);
+    var y = (e.clientY - rect.top)  * (canvas[0].height / rect.height);
+
+    canvas.toggleClass('hand', seed.hover(x, y));
+});
+
 
     var seedAnimate = eval(Jscex.compile("async", function () {
         seed.draw();
