@@ -25,7 +25,6 @@ $(window).resize(function () {
                 $ele.html(str.substring(0, progress));
                 if (progress >= str.length) {
                     clearInterval(timer);
-                     $ele.html(str); // deja el HTML final sin cursor
                     document.dispatchEvent(new Event("typewriter:done"));
                 }
             }, 75);
