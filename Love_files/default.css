@@ -197,9 +197,3 @@ a {
     /* ligera inclinación */
     transform: rotate(-3deg);
 }
-.tw-cursor{
-  display:inline-block;
-  margin-left:2px;
-  animation: twblink 0.8s step-end infinite;
-}
-@keyframes twblink { 50% { opacity: 0; } }
